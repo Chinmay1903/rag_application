@@ -1,0 +1,21 @@
+# Django and related packages
+django==4.2
+djangorestframework==3.14.0
+
+# Authentication
+djangorestframework-simplejwt==5.2.2
+
+# Database
+psycopg2-binary==2.9.7
+asyncpg==0.27.0
+
+# OpenAI for embeddings and Q&A
+openai==0.27.8
+langchain==0.0.194
+
+# Testing
+pytest==7.4.2
+pytest-django==4.5.2
+
+# Utilities
+numpy==1.24.3

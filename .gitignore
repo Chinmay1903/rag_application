@@ -60,6 +60,10 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+*.pot
+*.pyc
+/media/
+/staticfiles/
 
 # Flask stuff:
 instance/
@@ -169,3 +173,44 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Environment Variables
+.env
+
+# macOS specific files
+.DS_Store
+
+# VS Code settings
+.vscode/
+*.code-workspace
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build files
+dist/
+build/
+*.bundle.js
+*.bundle.js.map
+
+# Vue specific
+/public/
+/src/assets/
+/src/**/*.css.map
+
+# Test-related files
+coverage/
+*.cover
+.hypothesis/
+
+# Docker-specific
+*.swp
+.dockerignore
+docker-compose.override.yml
+*.pid
+
+# Misc
+!.gitkeep
