@@ -185,10 +185,11 @@ cython_debug/
 *.code-workspace
 
 # Node.js dependencies
-node_modules/
+node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Build files
 dist/
@@ -211,6 +212,10 @@ coverage/
 .dockerignore
 docker-compose.override.yml
 *.pid
+
+# local env files
+.env.local
+.env.*.local
 
 # Misc
 !.gitkeep
