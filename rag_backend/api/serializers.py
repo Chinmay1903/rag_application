@@ -1,18 +1,11 @@
 from rest_framework import serializers
-from .models import Document
 from django.contrib.auth.models import User
 
-class DocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Document
-        fields = ['id', 'title', 'content', 'embedding', 'created_at']
-        
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
+        fields = ['username', 'password', 'email']
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         user = User.objects.create_user(

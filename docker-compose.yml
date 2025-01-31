@@ -1,11 +1,12 @@
 services:
-  app:
+  backend:
     build:
-      context: .
+      context: ./rag_backend
     container_name: rag_app
     command: python manage.py runserver 0.0.0.0:8000
+    restart: always
     volumes:
-      - .:/app
+      - .rag_backend:/app
     ports:
       - "8000:8000"
     depends_on:
@@ -14,6 +15,7 @@ services:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=rag_backend.settings
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - POSTGRES_USER=raguser
       - POSTGRES_PASSWORD=1234546
       - POSTGRES_DB=rag_db
 
@@ -28,6 +30,17 @@ services:
       POSTGRES_USER: "raguser"
       POSTGRES_PASSWORD: "1234546"
       POSTGRES_DB: "rag_db"
+  
+  frontend:
+    build: ./rag-frontend
+    container_name: rag_frontend
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./rag-frontendfrontend:/app
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

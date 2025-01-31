@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Set work directory
-WORKDIR /app
+WORKDIR /rag_backend
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -25,4 +25,4 @@ COPY . .
 EXPOSE 8000
 
 # Start the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]

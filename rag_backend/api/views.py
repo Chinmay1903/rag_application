@@ -1,93 +1,57 @@
-import openai
-import numpy as np
-from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Document
-from .serializers import DocumentSerializer, RegisterSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.parsers import MultiPartParser
+from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from django.shortcuts import get_object_or_404
+from .models import Document, Question
+from .serializers import RegisterSerializer
+from .utils import generate_answer
 
-
-# Document Ingestion API
-class DocumentIngestionView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        title = request.data.get('title')
-        content = request.data.get('content')
-
-        # Generate embeddings using OpenAI API
-        embedding = openai.Embedding.create(
-            input=content,
-            model="text-embedding-ada-002"
-        )['data'][0]['embedding']
-
-        # Save document to the database
-        doc = Document.objects.create(title=title, content=content, embedding=embedding)
-        return Response({'message': 'Document ingested successfully', 'document_id': doc.id})
-
-
-# Q&A API
-class QandAView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        question = request.data.get('question')
-
-        # Generate question embedding
-        question_embedding = openai.Embedding.create(
-            input=question,
-            model="text-embedding-ada-002"
-        )['data'][0]['embedding']
-
-        # Retrieve relevant documents
-        documents = Document.objects.all()
-        similarities = [
-            (doc, np.dot(np.array(doc.embedding), np.array(question_embedding)))
-            for doc in documents
-        ]
-        sorted_docs = sorted(similarities, key=lambda x: x[1], reverse=True)
-        top_doc = sorted_docs[0][0] if sorted_docs else None
-
-        if top_doc:
-            # Generate answer using OpenAI's GPT model
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": f"Answer based on the document: {top_doc.content}. {question}"}
-                ]
-            )
-            answer = response['choices'][0]['message']['content']
-            return Response({'answer': answer, 'document': top_doc.title})
-        else:
-            return Response({'answer': 'No relevant document found'})
-
-
-# Document Selection API
-class DocumentSelectionView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        documents = Document.objects.values('id', 'title')
-        return Response({'documents': list(documents)})
-
-    def post(self, request):
-        selected_ids = request.data.get('document_ids', [])
-        selected_docs = Document.objects.filter(id__in=selected_ids)
-        titles = [doc.title for doc in selected_docs]
-        return Response({'selected_documents': titles})
-    
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                {"message": "User registered successfully"},
-                status=status.HTTP_201_CREATED
+            return Response({"message": "User registered successfully"}, status=HTTP_201_CREATED)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+class UploadDocumentView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+
+        document = Document.objects.create(user=request.user, file=file)
+        return Response({"message": "Document uploaded successfully", "document_id": document.id}, status=201)
+
+class AskQuestionView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, doc_id):
+        document = get_object_or_404(Document, id=doc_id, user=request.user)
+        question_text = request.data.get("question")
+        if not question_text:
+            return Response({"error": "Question is required"}, status=400)
+
+        # Read the document content
+        with open(document.file.path, 'r') as f:
+            document_text = f.read()
+
+        # Generate answer using OpenAI
+        try:
+            answer = generate_answer(question_text, document_text)
+            question = Question.objects.create(
+                user=request.user,
+                document=document,
+                question=question_text,
+                answer=answer
             )
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
+            return Response({"question": question_text, "answer": answer}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)

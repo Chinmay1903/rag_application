@@ -61,7 +61,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        # 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticated',
     ),
 }
 
@@ -110,6 +110,9 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', '1234546'),
         'HOST': 'db',  # Service name from docker-compose
         'PORT': '5432',
+        'OPTIONS': {
+            'client_encoding': 'UTF8',
+        }
     }
 }
 
