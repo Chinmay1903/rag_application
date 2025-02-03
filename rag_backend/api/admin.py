@@ -5,9 +5,9 @@ from .models import Document, Question
 
 # Extend the default UserAdmin
 class CustomUserAdmin(UserAdmin):
-    list_display = ('id', 'username', 'email', 'is_staff', 'date_joined')
+    list_display = ('id', 'username', 'email', 'is_superuser', 'date_joined')
     search_fields = ('username', 'email')
-    list_filter = ('is_staff', 'is_superuser', 'date_joined')
+    list_filter = ('is_active', 'is_superuser', 'date_joined')
     ordering = ('-date_joined',)
 
 # Register Custom User Admin
