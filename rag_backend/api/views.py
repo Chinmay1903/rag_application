@@ -42,6 +42,10 @@ class AskQuestionView(APIView):
         # Read the document content
         with open(document.file.path, 'r') as f:
             document_text = f.read()
+        
+        # # Convert encoding (Auto-detect)
+        # encoding = chardet.detect(raw_data)['encoding']
+        # document_text = raw_data.decode(encoding or 'utf-8', errors='replace')  # Replace bad characters
 
         # Generate answer using OpenAI
         try:
