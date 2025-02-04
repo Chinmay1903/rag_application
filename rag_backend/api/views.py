@@ -40,8 +40,15 @@ class AskQuestionView(APIView):
             return Response({"error": "Question is required"}, status=400)
 
         # Read the document content
-        with open(document.file.path, 'r') as f:
-            document_text = f.read()
+        # with open(document.file.path, 'r') as f:
+        #     document_text = f.read()
+        try:
+            with open(document.file.path, "r", encoding="utf-8") as file:
+                return file.read()
+        except UnicodeDecodeError:
+            # Try different encoding
+            with open(document.file.path, "r", encoding="ISO-8859-1") as file:
+                return file.read()
         
         # Convert encoding (Auto-detect)
         encoding = chardet.detect(raw_data)['encoding']
